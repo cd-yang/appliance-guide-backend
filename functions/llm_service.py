@@ -66,16 +66,18 @@ def get_llm_streaming_response(messages: List[ChatMessage]) -> Generator[Dict[st
     # Yield each chunk as it arrives
     for chunk in response_stream:
         if chunk is not None and chunk.delta:
-            yield f"data: {json.dumps({
+            data = json.dumps({
                 "chunk": chunk.delta,
                 "done": False
-            })}\n\n"
+            })
+            yield f'data: {data}\n\n'
 
     # Signal completion
-    yield f"data: {json.dumps({
+    data = json.dumps({
         "chunk": "",
         "done": True
-    })}\n\n"
+    })
+    yield f'data: {data}\n\n'
 
 
 def process_chat_request(messages: List[Dict[str, str]]) -> Dict[str, Any]:

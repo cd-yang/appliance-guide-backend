@@ -4,10 +4,9 @@
 
 from typing import Any
 
+import llm_service
 from firebase_admin import auth, initialize_app
 from firebase_functions import https_fn, options, params
-
-import llm_service
 
 initialize_app()
 
