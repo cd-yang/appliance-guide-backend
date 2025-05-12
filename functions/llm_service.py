@@ -5,7 +5,7 @@ from typing import Any, Dict, Generator, List
 from dotenv import load_dotenv
 from firebase_functions import https_fn
 from flask import json
-from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.core.llms import ChatMessage, ImageBlock, MessageRole
 from llama_index.llms.google_genai import GoogleGenAI
 
 # load environment variables
@@ -28,7 +28,7 @@ def get_llm_instance():
 
 
 def format_chat_messages(messages: List[Dict[str, str]]) -> List[ChatMessage]:
-    """Convert chat history from request format to LlamaIndex format."""
+    """Convert chat history from request format to LlamaIndex format, handling images."""
     formatted_messages = []
     for message in messages:
         if "role" not in message or "content" not in message:
@@ -37,13 +37,22 @@ def format_chat_messages(messages: List[Dict[str, str]]) -> List[ChatMessage]:
 
         role = MessageRole.USER if message["role"].lower(
         ) == "user" else MessageRole.ASSISTANT
-        formatted_messages.append(ChatMessage(
-            role=role, content=message["content"]))
 
+        # Create a chat message with text content
+        chat_message = ChatMessage(role=role, content=message["content"])
+
+        # Handle messages with image URLs
+        if "imageUrl" in message and message["imageUrl"]:
+            # Add image block directly using the URL
+            chat_message.blocks.append(ImageBlock(url=message["imageUrl"]))
+
+        formatted_messages.append(chat_message)
+
+    print(formatted_messages)
     return formatted_messages
 
 
-def get_llm_response(messages: List[ChatMessage]) -> str:
+def get_llm_response(messages: List[ChatMessage]) -> Dict[str, Any]:
     """Get complete response from LLM based on messages."""
     try:
         llm = get_llm_instance()
